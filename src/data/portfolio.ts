@@ -80,4 +80,69 @@ export const portfolioData = {
     hostname: "ABS12-Bold-05Dhamu",
     motd: "Built by Arati. Inspired by ambition. Fueled by purpose.",
   },
+
+  catArati: `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  File: arati.txt
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ # Arati Sankaliya
+ # Me Beyond My Resume
+
+ ─────────────────────────────────────
+ ## The actual me
+
+ I sing. Genuinely well.
+
+ I journal. Every thought that feels
+ too big for my head ends up on paper.
+ Writing is how I process the world.
+
+ I can walk up to a stranger and have
+ a conversation they'll remember.
+ People say I'm a pure soul.
+ I'm starting to believe them.
+
+ I have a 99% angel mindset.
+ And 1% gangster. The 1% is load-bearing.
+
+ ─────────────────────────────────────
+ ## How I actually think
+
+ I find something good in everything.
+ Even the bad things. Especially those.
+
+ I read people the way developers
+ read stack traces — carefully,
+ without judgment, looking for the
+ root cause, not the surface error.
+
+ I believe my Guru,
+ His Holiness Mahant Swami Maharaj,
+ walks with me in everything I build.
+ That's not separate from my work.
+ That's the foundation of it.
+
+ ─────────────────────────────────────
+ ## Why this matters in my work
+
+ I don't build AI to replace humans.
+ I build it to understand them better.
+
+ Every agent I write, every system
+ I configure — it carries this:
+ the belief that technology should
+ feel like it was made by someone
+ who actually cares about people.
+
+ Because it was.
+
+ ─────────────────────────────────────
+
+ "Nothing is impossible when you
+  master the Terminal."
+                    — mindset.txt
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`,
 } as const;

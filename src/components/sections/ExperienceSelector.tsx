@@ -7,7 +7,10 @@ interface ExperienceSelectorProps {
 }
 
 const containerVariants: Variants = {
-  hidden: { opacity: 0 },
+  hidden: { 
+    opacity: 0,
+    transition: { duration: 0.25 }
+  },
   visible: {
     opacity: 1,
     transition: { staggerChildren: 0.15, delayChildren: 0.2 },
@@ -15,7 +18,11 @@ const containerVariants: Variants = {
 }
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 30 },
+  hidden: { 
+    opacity: 0, 
+    y: 30,
+    transition: { duration: 0.25, ease: "easeOut" }
+  },
   visible: {
     opacity: 1,
     y: 0,
@@ -45,7 +52,7 @@ export default function ExperienceSelector({ onSelect }: ExperienceSelectorProps
         variants={containerVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
+        viewport={{ once: false, margin: "-100px" }}
       >
         {/* section label */}
         <motion.div

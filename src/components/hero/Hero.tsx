@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { motion, type Variants } from "framer-motion"
-import { Mail, Download, ArrowUpRight, Menu } from "lucide-react"
+import { Mail, Download } from "lucide-react"
 import TypeWriter from "../ui/TypeWriter"
 import { portfolioData } from "../../data/portfolio"
 
@@ -18,26 +18,6 @@ const firstNameVariants: Variants = {
   },
 }
 
-// Last name — each letter floats up individually from scattered positions
-const lastLetterVariants: Variants = {
-  hidden: (i: number) => ({
-    opacity: 0,
-    y: 120 + (i % 3) * 30,
-    x: (i % 2 === 0 ? -1 : 1) * (i % 4) * 8,
-    filter: "blur(4px)",
-  }),
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    x: 0,
-    filter: "blur(0px)",
-    transition: {
-      duration: 1.0,
-      ease: [0.16, 1, 0.3, 1],
-      delay: 0.9 + i * 0.07,
-    },
-  }),
-}
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 20 },
@@ -52,41 +32,37 @@ const fadeUp: Variants = {
   }),
 }
 
-// Menu overlay variants
-const menuOverlayVariants: Variants = {
-  hidden: { opacity: 0, y: "-100%" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
-  },
-  exit: {
-    opacity: 0,
-    y: "-100%",
-    transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-  },
-}
 
-const menuItemVariants: Variants = {
-  hidden: { opacity: 0, x: -30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    x: 0,
-    transition: { duration: 0.4, ease: "easeOut", delay: 0.15 + i * 0.08 },
-  }),
-}
 
 export default function Hero() {
-  const { name, tagline, typewriterPhrases, contact } = portfolioData
+  const { name, typewriterPhrases, contact } = portfolioData
   const cursorRef = useRef<HTMLDivElement>(null)
   const cursorDotRef = useRef<HTMLDivElement>(null)
   const [cursorVisible, setCursorVisible] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [isAssembled, setIsAssembled] = useState(false)
 
   const firstName = name.split(" ")[0].toUpperCase()
   const lastName = name.split(" ")[1].toUpperCase()
 
-  const navItems = ["about", "projects", "experience", "gallery", "contact"]
+  // Pre-calculate random fly-in positions for each letter of the last name
+  const letterOffsets = useMemo(() =>
+    lastName.split("").map(() => {
+      const side = Math.floor(Math.random() * 4)
+      const distance = 1500
+      let x = 0, y = 0
+      if (side === 0) { x = -distance; y = (Math.random() - 0.5) * distance }
+      else if (side === 1) { x = distance; y = (Math.random() - 0.5) * distance }
+      else if (side === 2) { y = -distance; x = (Math.random() - 0.5) * distance }
+      else { y = distance; x = (Math.random() - 0.5) * distance }
+      return { x, y, rotate: (Math.random() - 0.5) * 360, delay: Math.random() * 0.8 }
+    })
+    , [lastName])
+
+  // Trigger assembly after a short delay (matches Dhruv's 600 ms)
+  useEffect(() => {
+    const timer = setTimeout(() => setIsAssembled(true), 600)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     const cursor = cursorRef.current
@@ -120,17 +96,9 @@ export default function Hero() {
     }
   }, [])
 
-  // lock body scroll when menu open
-  useEffect(() => {
-    document.body.style.overflow = menuOpen ? "hidden" : ""
-    return () => {
-      document.body.style.overflow = ""
-    }
-  }, [menuOpen])
 
-  const scrollToSelector = () => {
-    document.getElementById("experience-selector")?.scrollIntoView({ behavior: "smooth" })
-  }
+
+
 
   return (
     <>
@@ -145,103 +113,6 @@ export default function Hero() {
         className="fixed top-0 left-0 w-2 h-2 rounded-full bg-[#7C3AED] pointer-events-none z-[9999] hidden md:block"
         style={{ opacity: cursorVisible ? 1 : 0, transition: "opacity 0.3s" }}
       />
-
-      {/* ── MENU OVERLAY ── */}
-      {menuOpen && (
-        <motion.div
-          variants={menuOverlayVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          className="fixed inset-0 bg-[#080808] z-[9998] flex flex-col px-8 md:px-12 py-8"
-        >
-          {/* overlay navbar */}
-          <div className="flex items-center justify-between mb-16">
-            <div className="font-mono text-xs text-white/30 tracking-widest uppercase">
-              arati@ABS12
-            </div>
-            {/* center name */}
-            <div className="font-sans text-sm font-semibold tracking-widest text-white/70 uppercase hidden md:block">
-              Arati <span className="italic font-light text-[#7C3AED]">Sankaliya</span>
-            </div>
-            <button
-              onClick={() => setMenuOpen(false)}
-              className="font-mono text-xs text-white/40 hover:text-white transition-colors flex items-center gap-2 border border-white/10 rounded-full px-4 py-2"
-            >
-              ✕ CLOSE
-            </button>
-          </div>
-
-          {/* menu items */}
-          <div className="flex-1 flex flex-col justify-center gap-2">
-            {navItems.map((item, i) => (
-              <motion.a
-                key={item}
-                custom={i}
-                variants={menuItemVariants}
-                initial="hidden"
-                animate="visible"
-                href={`#${item}`}
-                onClick={() => setMenuOpen(false)}
-                className="group flex items-center gap-4 py-4 border-b border-white/[0.06] hover:border-[#7C3AED]/30 transition-colors duration-300"
-              >
-                <span className="font-mono text-[10px] text-white/20 w-6">0{i + 1}</span>
-                <span className="text-4xl md:text-6xl font-black text-white/80 group-hover:text-white tracking-tight transition-colors duration-300 uppercase">
-                  {item}
-                </span>
-                <ArrowUpRight
-                  size={20}
-                  className="ml-auto text-white/10 group-hover:text-[#7C3AED] transition-colors duration-300"
-                />
-              </motion.a>
-            ))}
-          </div>
-
-          {/* overlay bottom */}
-          <div className="flex items-center justify-between pt-8 border-t border-white/[0.05]">
-            <div className="flex items-center gap-5">
-              <a
-                href={contact.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-mono text-[11px] text-white/30 hover:text-[#7C3AED] transition-colors flex items-center gap-1.5"
-              >
-                <img
-                  src="/social/github.png"
-                  alt=""
-                  aria-hidden="true"
-                  className="h-3 w-3 opacity-60"
-                />
-                github
-              </a>
-              <a
-                href={contact.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-mono text-[11px] text-white/30 hover:text-[#7C3AED] transition-colors flex items-center gap-1.5"
-              >
-                <img
-                  src="/social/linkedin.png"
-                  alt=""
-                  aria-hidden="true"
-                  className="h-3 w-3 opacity-60"
-                />
-                linkedin
-              </a>
-              <a
-                href={`mailto:${contact.email}`}
-                className="font-mono text-[11px] text-white/30 hover:text-white transition-colors flex items-center gap-1.5"
-              >
-                <Mail size={12} />
-                mail
-              </a>
-            </div>
-            <div className="font-mono text-[10px] text-white/15 hidden md:block">
-              arati@ABS12-Bold-05Dhamu · zsh 5.9
-            </div>
-          </div>
-        </motion.div>
-      )}
 
       <section className="relative min-h-screen bg-[#080808] flex flex-col justify-between overflow-hidden">
         {/* subtle grid */}
@@ -258,55 +129,25 @@ export default function Hero() {
         {/* ambient glow bottom-right — deeper purple */}
         <div className="absolute -bottom-40 -right-20 w-[500px] h-[500px] bg-[#5B21B6] opacity-[0.05] rounded-full blur-[140px] pointer-events-none" />
 
-        {/* ── NAVBAR ── */}
-        <motion.nav
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="relative z-10 flex items-center justify-between px-8 md:px-12 pt-8"
-        >
-          {/* left — menu button */}
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="flex items-center gap-2 font-mono text-xs text-white/50 hover:text-white transition-colors duration-300 border border-white/10 hover:border-white/20 rounded-full px-4 py-2"
-          >
-            <Menu size={12} />
-            MENU
-          </button>
-
-          {/* center — name */}
-          <div className="font-sans text-sm font-semibold tracking-widest text-white/60 uppercase">
-            Arati <span className="italic font-light text-[#7C3AED]">Sankaliya</span>
-          </div>
-
-          {/* right — let's connect */}
-          <a
-            href={`mailto:${contact.email}`}
-            className="flex items-center gap-2 font-mono text-xs text-[#080808] bg-[#7C3AED] hover:bg-[#6D28D9] transition-colors duration-300 rounded-full px-5 py-2 font-semibold"
-          >
-            LET'S CONNECT
-          </a>
-        </motion.nav>
-
         {/* ── MAIN CONTENT ── */}
-        <div className="relative z-10 px-8 md:px-12 flex-1 flex flex-col justify-center pt-4">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 flex-1 flex flex-col justify-center pt-20 md:pt-24">
           {/* identity label — purple */}
           <motion.div
             custom={0}
             variants={fadeUp}
             initial="hidden"
             animate="visible"
-            className="font-mono text-[11px] text-[#7C3AED]/70 tracking-[0.25em] uppercase mb-6 flex items-center gap-3"
+            className="font-mono text-[11px] text-[#7C3AED] tracking-[0.25em] uppercase mb-6 flex items-center gap-3"
           >
             <span>AI Engineer</span>
-            <span className="text-[#7C3AED]/40">·</span>
+            <span className="text-[#7C3AED]/80">·</span>
             <span>Agentic Systems</span>
-            <span className="text-[#7C3AED]/40">·</span>
+            <span className="text-[#7C3AED]/80">·</span>
             <span>Power Linux User</span>
           </motion.div>
 
           {/* BIG NAME */}
-          <div className="mb-2 leading-[0.85] overflow-hidden">
+          <div className="mb-2 leading-[0.85]">
             {/* First name — solid white, animates as one block */}
             <div className="overflow-hidden">
               <motion.div
@@ -319,7 +160,7 @@ export default function Hero() {
                   <span
                     key={`first-${i}`}
                     className="text-[11vw] md:text-[10vw] lg:text-[9vw] font-black text-white leading-none tracking-[-0.02em] inline-block"
-                    style={{ fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif" }}
+                    style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}
                   >
                     {letter}
                   </span>
@@ -327,24 +168,29 @@ export default function Hero() {
               </motion.div>
             </div>
 
-            {/* Last name — outlined, letters float up individually */}
-            <div className="flex overflow-hidden">
+            {/* Last name — letters fly in from random off-screen positions */}
+            <div className="flex overflow-visible text-[11vw] md:text-[10vw] lg:text-[9vw] h-[1.1em]">
               {lastName.split("").map((letter, i) => (
-                <motion.span
+                <span
                   key={`last-${i}`}
-                  custom={i}
-                  variants={lastLetterVariants}
-                  initial="hidden"
-                  animate="visible"
-                  className="text-[11vw] md:text-[10vw] lg:text-[9vw] font-black leading-none tracking-[-0.02em] inline-block"
+                  className="font-black leading-none tracking-[-0.02em] inline-block"
                   style={{
-                    fontFamily: "'Arial Black', 'Helvetica Neue', sans-serif",
-                    WebkitTextStroke: "1.5px rgba(255,255,255,0.35)",
+                    fontSize: "1em",
+                    fontFamily: "'Outfit', sans-serif",
+                    fontWeight: 900,
+                    WebkitTextStroke: "2.5px rgba(255,255,255,0.55)",
                     color: "transparent",
+                    transition: "all 1.7s cubic-bezier(0.16, 1, 0.3, 1)",
+                    transitionDelay: `${letterOffsets[i].delay}s`,
+                    transform: isAssembled
+                      ? "translate(0, 0) rotate(0deg) scale(1)"
+                      : `translate(${letterOffsets[i].x}px, ${letterOffsets[i].y}px) rotate(${letterOffsets[i].rotate}deg) scale(0.5)`,
+                    opacity: isAssembled ? 1 : 0,
+                    filter: isAssembled ? "blur(0px)" : "blur(20px)",
                   }}
                 >
                   {letter}
-                </motion.span>
+                </span>
               ))}
             </div>
           </div>
@@ -356,9 +202,20 @@ export default function Hero() {
               variants={fadeUp}
               initial="hidden"
               animate="visible"
-              className="text-[#7C3AED] text-base md:text-lg font-light max-w-md leading-relaxed"
+              className="text-white/60 text-base md:text-lg font-light max-w-2xl lg:max-w-3xl leading-relaxed"
             >
-              {tagline}
+              I{" "}
+              <span className="text-white font-bold hover:text-[#7C3AED] transition-colors duration-300 cursor-default">
+                engineer agents
+              </span>
+              ,{" "}
+              <span className="text-white font-bold hover:text-[#7C3AED] transition-colors duration-300 cursor-default">
+                configure systems
+              </span>
+              , and once{" "}
+              <span className="text-white font-bold italic hover:text-[#7C3AED] transition-colors duration-300 cursor-default">
+                built a version of myself.
+              </span>
             </motion.p>
 
             <motion.div
@@ -378,76 +235,72 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.8, duration: 0.6, ease: "easeOut" }}
-          className="relative z-10 px-8 md:px-12 pb-8 flex items-center justify-between border-t border-white/[0.05] pt-5 mt-6"
+          className="relative z-10 w-full border-t border-white/[0.05] px-4 sm:px-6 md:px-8 pb-8 pt-5 mt-6"
         >
-          {/* left — tagline */}
-          <div className="font-mono text-[10px] text-white/20 tracking-wider uppercase hidden md:block">
-            Building with logic. Shipping with heart.
-          </div>
+          <div className="max-w-7xl mx-auto grid grid-cols-3 items-center">
+            {/* Left Column — Tagline */}
+            <div className="flex justify-start">
+              <div className="font-mono text-[10px] text-white/40 tracking-wider uppercase hidden md:block">
+                Building with logic. Shipping with heart.
+              </div>
+            </div>
 
-          {/* center — social */}
-          <div className="flex items-center gap-5">
-            <a
-              href={contact.github}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono text-[11px] text-white/35 hover:text-[#7C3AED] transition-colors duration-300 flex items-center gap-1.5"
-            >
-              <img
-                src="/social/github.png"
-                alt=""
-                aria-hidden="true"
-                className="h-3 w-3 opacity-60"
-              />
-              github
-            </a>
-            <span className="text-white/15 text-xs">·</span>
-            <a
-              href={contact.linkedin}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono text-[11px] text-white/35 hover:text-[#7C3AED] transition-colors duration-300 flex items-center gap-1.5"
-            >
-              <img
-                src="/social/linkedin.png"
-                alt=""
-                aria-hidden="true"
-                className="h-3 w-3 opacity-60"
-              />
-              linkedin
-            </a>
-            <span className="text-white/15 text-xs">·</span>
-            <a
-              href={`mailto:${contact.email}`}
-              className="font-mono text-[11px] text-white/35 hover:text-white transition-colors duration-300 flex items-center gap-1.5"
-            >
-              <Mail size={12} />
-              mail
-            </a>
-          </div>
+            {/* Center Column — Social */}
+            <div className="flex justify-center items-center gap-5">
+              <a
+                href={contact.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-[11px] text-white/80 hover:text-[#7C3AED] transition-colors duration-300 flex items-center gap-1.5"
+              >
+                <img
+                  src="/social/github.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-3 w-3 opacity-100"
+                />
+                github
+              </a>
+              <span className="text-white/80 text-xs">·</span>
+              <a
+                href={contact.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-[11px] text-white/80 hover:text-[#7C3AED] transition-colors duration-300 flex items-center gap-1.5"
+              >
+                <img
+                  src="/social/linkedin.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-3 w-3 opacity-1O0"
+                />
+                linkedin
+              </a>
+              <span className="text-white/80 text-xs">·</span>
+              <a
+                href={`mailto:${contact.email}`}
+                className="font-mono text-[11px] text-white/80 hover:text-white transition-colors duration-300 flex items-center gap-1.5"
+              >
+                <Mail size={12} />
+                mail
+              </a>
+            </div>
 
-          {/* right — download resume button */}
-          <a
-            href="/resume.pdf"
-            download
-            className="flex items-center gap-2 font-mono text-[11px] text-white/70 hover:text-white border border-[#7C3AED]/40 hover:border-[#7C3AED] hover:bg-[#7C3AED]/10 transition-all duration-300 rounded-full px-4 py-2"
-          >
-            <Download size={11} />
-            Download Resume
-          </a>
+            {/* Right Column — Download Resume */}
+            <div className="flex justify-end">
+              <a
+                href="/resume.pdf"
+                download
+                className="flex items-center gap-2 font-mono text-[11px] text-white/70 hover:text-white border border-[#7C3AED]/40 hover:border-[#7C3AED] hover:bg-[#7C3AED]/10 transition-all duration-300 rounded-full px-4 py-2"
+              >
+                <Download size={11} />
+                Download Resume
+              </a>
+            </div>
+          </div>
         </motion.div>
 
-        {/* bottom-right system info — slightly more visible */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2.2, duration: 1 }}
-          className="absolute bottom-20 right-8 font-mono text-[9px] text-white/25 text-right leading-relaxed hidden lg:block"
-        >
-          <div>arati@ABS12-Bold-05Dhamu</div>
-          <div>zsh 5.9 · Ubuntu 24.04.4</div>
-          <div>uptime: 20 years, 5 months</div>
-        </motion.div>
+
       </section>
     </>
   )

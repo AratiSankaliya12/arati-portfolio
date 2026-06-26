@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { X, Minus, Maximize2 } from "lucide-react"
-import { portfolioData } from "./data/portfolio"
 import DigitalTwin from "./components/digitaltwin/DigitalTwin"
 import Hero from "./components/hero/Hero"
 import ExperienceSelector from "./components/sections/ExperienceSelector"
+import About from "./components/sections/About"
+import Navbar from "./components/navigation/Navbar"
+import CursorSparkle from "./components/ui/CursorSparkle"
+import Experience from "./components/sections/Experience"
+import Projects from "./components/sections/Projects"
 
 // ── TYPES ──────────────────────────────────────────
 interface TerminalLine {
@@ -81,10 +85,10 @@ const OUTPUTS: Record<string, string[]> = {
     "+sssshhhyNMMNyssssssssyNMMMys+    %%C%%Shell   %%W%%: zsh 5.9",
     "ossyNMMMNyMMhsssssssshmmmhsso     %%C%%Terminal%%W%%: gnome-terminal",
     "ossyNMMMNyMMhsssssssshmmmhsso     %%C%%CPU/GPU %%W%%: Brain — wired for ambition,",
-    "+sssshhhyNMMNyssssssssyNMMMys+              %%w%%clocked for aims",
+    "+sssshhhyNMMNyssssssssyNMMMys+              %%w%% clocked for aims",
     ".sssssssdMMMNhssssssssshNMMMd.    %%C%%VRAM    %%W%%: No limits on what I can visualize",
     "/sssssssshNMMMyhhyyyyhmNMMMh/     %%C%%Memory  %%W%%: Holds enough dreams,",
-    "+ssssssssshmydMMMMMMMNddddys+               %%w%%yet always hungry for more",
+    "+ssssssssshmydMMMMMMMNddddys+               %%w%% yet always hungry for more",
     " /ssssssssssshdmmNNmmyNMMMMh/   ",
     "  .osssssssssssssssssssdMMMy.   %%Y%%████ %%M%%████ %%C%%████ %%G%%████ %%W%%████ ████ ████ ████",
     "   -+ssssssssssssssssssyys+-   ",
@@ -366,7 +370,6 @@ function Terminal({ onClose, onSwitchToDigitalTwin }: TerminalProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const skillsMenuJustOpened = useRef(false)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const { contact } = portfolioData
 
   const nextId = () => {
     setLineId((p) => p + 1)
@@ -715,8 +718,8 @@ function Terminal({ onClose, onSwitchToDigitalTwin }: TerminalProps) {
                   <div
                     key={opt}
                     className={`px-3 py-2 rounded flex items-center gap-3 transition-colors ${skillsMenu.selected === opt
-                      ? "bg-[#7C3AED]/20 text-[#7C3AED]"
-                      : "text-white/30"
+                        ? "bg-[#7C3AED]/20 text-[#7C3AED]"
+                        : "text-white/30"
                       }`}
                   >
                     <span>{skillsMenu.selected === opt ? "►" : " "}</span>
@@ -793,12 +796,17 @@ export default function App() {
 
   return (
     <>
+      {/* ── GLOBAL FX ── */}
+      <Navbar />
+      <CursorSparkle />
       {/* ── PORTFOLIO PAGE ── */}
       <Hero />
       <ExperienceSelector onSelect={(mode) => setOverlay(mode)} />
-
+      <About />
+      <Experience />
+      <Projects />
       {/* ── OVERLAYS ── */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="sync">
         {overlay === "terminal" && (
           <Terminal
             key="terminal"
@@ -806,12 +814,7 @@ export default function App() {
             onSwitchToDigitalTwin={() => setOverlay("digitaltwin")}
           />
         )}
-        {overlay === "digitaltwin" && (
-          <DigitalTwin
-            key="digitaltwin"
-            onBack={closeOverlay}
-          />
-        )}
+        {overlay === "digitaltwin" && <DigitalTwin key="digitaltwin" onBack={closeOverlay} />}
       </AnimatePresence>
     </>
   )
